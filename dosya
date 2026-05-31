@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Rehberi</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f0f;--surface:#1a1a1a;--surface2:#222;--border:#2e2e2e;
+  --text:#f0ede8;--muted:#777;
+  --green:#c8f060;--orange:#ff6b35;--blue:#60d4f0;--pink:#f06090;--yellow:#f0c060;
+  --purple:#c4b0ff;
+}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh}
+.app{max-width:500px;margin:0 auto;padding:0 0 100px}
+
+/* ── NAV ── */
+.nav-bar{position:sticky;top:0;z-index:100;background:rgba(15,15,15,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 16px}
+.nav-tabs{display:flex;gap:0}
+.nav-tab{flex:1;padding:16px 4px;font-family:'Syne',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all .2s}
+.nav-tab.active{color:var(--green);border-bottom-color:var(--green)}
+
+/* ── SECTIONS ── */
+.section{display:none;padding:20px 16px}
+.section.active{display:block}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-bottom:24px}
+.page-label{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.page-title{font-size:28px;font-weight:800;line-height:1.1}
+.page-title span{color:var(--green)}
+.page-sub{font-size:13px;color:var(--muted);margin-top:6px}
+
+/* ── PERSON TOGGLE ── */
+.person-toggle{display:flex;gap:8px;margin-bottom:20px}
+.person-btn{flex:1;padding:11px;border-radius:12px;border:1px solid var(--border);background:var(--surface);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s;text-align:center}
+.person-btn.active-m{background:rgba(200,240,96,.12);border-color:var(--green);color:var(--green)}
+.person-btn.active-f{background:rgba(240,96,144,.12);border-color:var(--pink);color:var(--pink)}
+
+/* ── WEEK MODE (kadın) ── */
+.week-toggle{display:flex;gap:6px;margin-bottom:16px}
+.week-btn{padding:9px 16px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;transition:all .2s}
+.week-btn.active{background:rgba(96,212,240,.15);border-color:var(--blue);color:var(--blue)}
+.week-btn#wm-detoks{border-color:rgba(96,212,240,.3)}
+.week-btn#wm-detoks.active{background:rgba(96,212,240,.2);border-color:var(--blue);color:var(--blue);box-shadow:0 0 0 1px var(--blue)}
+
+/* ── DAY TABS ── */
+.day-tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+.day-tabs::-webkit-scrollbar{display:none}
+.day-tab{flex-shrink:0;padding:7px 13px;border-radius:20px;border:1px solid var(--border);background:var(--surface);font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;white-space:nowrap}
+.day-tab.active-m{background:var(--green);color:#0f0f0f;border-color:var(--green)}
+.day-tab.active-f{background:var(--pink);color:#fff;border-color:var(--pink)}
+
+/* ── MEAL CARDS ── */
+.meal-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.meal-head{display:flex;align-items:center;gap:10px;padding:13px 14px;cursor:pointer}
+.meal-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.meal-title-text{font-size:14px;font-weight:700;flex:1}
+.meal-kcal{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.meal-chev{font-size:12px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.meal-chev.open{transform:rotate(180deg)}
+.meal-body{display:none;padding:0 14px 13px;border-top:1px solid var(--border)}
+
+.food-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.food-row:last-child{border-bottom:none}
+.food-row.eaten{opacity:.35}
+.fcheck{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s}
+.food-row.eaten .fcheck{background:var(--green);border-color:var(--green);color:#000}
+.food-name{font-size:13px;font-weight:600;flex:1}
+.food-detail{font-size:11px;color:var(--muted);margin-top:1px}
+.food-macro{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);white-space:nowrap;flex-shrink:0;text-align:right}
+
+.note-pill{background:var(--surface2);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--muted);line-height:1.5;margin-top:8px}
+.note-pill strong{color:var(--text)}
+
+/* KÜR KARTI */
+.kur-card{background:rgba(200,240,96,.06);border:1px solid rgba(200,240,96,.2);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.kur-title{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--green);text-transform:uppercase;margin-bottom:6px}
+.kur-item{font-size:13px;color:var(--text);padding:3px 0}
+.kur-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── SPOR ── */
+.workout-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.workout-head{display:flex;align-items:center;gap:10px;padding:14px 16px;cursor:pointer}
+.wday-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.wi-guc{background:rgba(200,240,96,.12)}
+.wi-hiit{background:rgba(255,107,53,.12)}
+.wi-full{background:rgba(96,212,240,.12)}
+.wi-done{background:var(--border)}
+.wday-info{flex:1}
+.wday-name{font-size:15px;font-weight:700}
+.wday-sub{font-size:12px;color:var(--muted);margin-top:1px}
+.wtype-pill{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;text-transform:uppercase;white-space:nowrap}
+.wp-guc{background:rgba(200,240,96,.15);color:var(--green)}
+.wp-hiit{background:rgba(255,107,53,.15);color:var(--orange)}
+.wp-full{background:rgba(96,212,240,.15);color:var(--blue)}
+.wp-done{background:var(--border);color:var(--muted)}
+.wchev{font-size:14px;color:var(--muted);transition:transform .2s;flex-shrink:0}
+.wchev.open{transform:rotate(180deg)}
+.workout-body{display:none;border-top:1px solid var(--border);padding:4px 16px 14px}
+.phase-lbl{font-size:9px;font-weight:700;letter-spacing:.16em;color:var(--muted);text-transform:uppercase;padding:10px 0 6px;border-top:1px solid var(--border);margin-top:4px;display:flex;justify-content:space-between}
+.phase-lbl:first-child{border-top:none;margin-top:0;padding-top:4px}
+.ex-row{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer}
+.ex-row:last-child{border-bottom:none}
+.ex-row.ex-done{opacity:.35}
+.ex-row.ex-done .fcheck{background:var(--green);border-color:var(--green);color:#000}
+.ex-name{font-size:13px;font-weight:600;flex:1}
+.ex-tip{font-size:11px;color:var(--muted);margin-top:2px}
+.ex-sets{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap;flex-shrink:0}
+.complete-btn{width:100%;margin-top:14px;padding:13px;border-radius:11px;border:none;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
+.cb-guc{background:var(--green);color:#0f0f0f}
+.cb-hiit{background:var(--orange);color:#fff}
+.cb-full{background:var(--blue);color:#0f0f0f}
+.cb-done{background:var(--border);color:var(--muted);cursor:default}
+
+/* progress */
+.prog-row{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.prog-track{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.prog-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s}
+.prog-lbl{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:nowrap}
+
+/* ── ALIŞVERİŞ ── */
+.shop-person-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.shop-cb-btn{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:all .2s;user-select:none}
+.shop-cb-btn.sel-m{border-color:var(--green);background:rgba(200,240,96,.08)}
+.shop-cb-btn.sel-f{border-color:var(--pink);background:rgba(240,96,144,.08)}
+.shop-cb-box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;transition:all .2s}
+.shop-cb-btn.sel-m .shop-cb-box{background:var(--green);border-color:var(--green);color:#000}
+.shop-cb-btn.sel-f .shop-cb-box{background:var(--pink);border-color:var(--pink);color:#fff}
+.shop-cb-label{font-size:13px;font-weight:700}
+
+.shop-cat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden}
+.shop-cat-head{padding:12px 14px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;border-bottom:1px solid var(--border)}
+.shop-item{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.shop-item:last-child{border-bottom:none}
+.shop-item.got{opacity:.4}
+.shop-item.got .fcheck{background:var(--green);border-color:var(--green);color:#000}
+.shop-item-name{font-size:13px;flex:1}
+.shop-item-qty{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)}
+.shop-who{font-size:10px;padding:2px 6px;border-radius:8px;margin-left:4px;font-weight:600}
+.who-m{background:rgba(200,240,96,.15);color:var(--green)}
+.who-f{background:rgba(240,96,144,.15);color:var(--pink)}
+.who-b{background:rgba(96,180,240,.15);color:var(--blue)}
+
+.empty-shop{text-align:center;padding:40px 16px;color:var(--muted);font-size:14px}
+
+/* stats */
+.stats-mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.stat-c{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:11px;text-align:center}
+.stat-n{font-family:'DM Mono',monospace;font-size:19px;font-weight:500}
+.stat-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+
+.reset-row{text-align:center;margin-top:20px}
+.reset-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Syne',sans-serif;font-size:12px;padding:8px 18px;border-radius:20px;cursor:pointer}
+
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.18em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- NAV -->
+<div class="nav-bar">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showSection('spor')">🏋️ Spor</button>
+    <button class="nav-tab" onclick="showSection('yemek')">🥗 Yemek</button>
+    <button class="nav-tab" onclick="showSection('alisveris')">🛒 Alışveriş</button>
+  </div>
+</div>
+
+<!-- ══════════════ SPOR ══════════════ -->
+<div class="section active" id="sec-spor">
+  <div class="page-header">
+    <div class="page-label">Haftalık Program</div>
+    <h1 class="page-title">Antrenman<br><span>Planı</span></h1>
+    <div class="page-sub">3 gün · max 60 dk · Çarşamba / Cuma / Hf.sonu</div>
+  </div>
+
+  <div class="stats-mini">
+    <div class="stat-c"><div class="stat-n" id="sp-done">0</div><div class="stat-l">Tamamlandı</div></div>
+    <div class="stat-c"><div class="stat-n">3</div><div class="stat-l">Hedef</div></div>
+    <div class="stat-c"><div class="stat-n" id="sp-week">H1</div><div class="stat-l">Hafta</div></div>
+  </div>
+  <div class="prog-row">
+    <div class="prog-track"><div class="prog-fill" id="sp-prog" style="width:0%"></div></div>
+    <span class="prog-lbl" id="sp-prog-lbl">0 / 3</span>
+  </div>
+
+  <div id="workoutCards"></div>
+  <div class="reset-row"><button class="reset-btn" onclick="resetSpor()">Yeni hafta başlat</button></div>
+</div>
+
+<!-- ══════════════ YEMEK ══════════════ -->
+<div class="section" id="sec-yemek">
+  <div class="page-header">
+    <div class="page-label">Beslenme Planı</div>
+    <h1 class="page-title">Yemek<br><span>Listesi</span></h1>
+  </div>
+
+  <div class="person-toggle">
+    <button class="person-btn active-m" id="ybtn-e" onclick="setYPerson('e')">👨 Erkek</button>
+    <button class="person-btn" id="ybtn-k" onclick="setYPerson('k')">👩 Kadın</button>
+  </div>
+
+  <!-- Kadın hafta modu -->
+  <div id="week-mode-row" style="display:none">
+    <div class="week-toggle">
+      <button class="week-btn active" id="wm-normal" onclick="setWeekMode('normal')">📅 Normal Hafta</button>
+      <button class="week-btn" id="wm-detoks" onclick="setWeekMode('detoks')" style="color:#9ecfdb;border-color:rgba(96,212,240,.35)">🌿 Detoks Haftası</button>
+    </div>
+  </div>
+
+  <div class="day-tabs" id="yDayTabs"></div>
+  <div id="yMealsContainer"></div>
+</div>
+
+<!-- ══════════════ ALIŞVERİŞ ══════════════ -->
+<div class="section" id="sec-alisveris">
+  <div class="page-header">
+    <div class="page-label">Haftalık</div>
+    <h1 class="page-title">Alışveriş<br><span>Listesi</span></h1>
+    <div class="page-sub">Kişi seçerek liste filtrele. İkisi = ortak liste.</div>
+  </div>
+
+  <div class="shop-person-row">
+    <div class="shop-cb-btn sel-m" id="scb-e" onclick="toggleShopPerson('e')">
+      <div class="shop-cb-box" id="scb-e-box">✓</div>
+      <span class="shop-cb-label">👨 Erkek</span>
+    </div>
+    <div class="shop-cb-btn sel-f" id="scb-k" onclick="toggleShopPerson('k')">
+      <div class="shop-cb-box" id="scb-k-box">✓</div>
+      <span class="shop-cb-label">👩 Kadın</span>
+    </div>
+  </div>
+  <div id="shopContainer"></div>
+</div>
+
+</div><!-- /app -->
+
+<script>
+// ─────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────
+var sporDone    = JSON.parse(localStorage.getItem('sp_done')||'[]');
+var sporWeek    = parseInt(localStorage.getItem('sp_week')||'1');
+var exDone      = JSON.parse(localStorage.getItem('ex_done')||'{}');
+var eatenState  = JSON.parse(localStorage.getItem('eaten2')||'{}');
+var shopGot     = JSON.parse(localStorage.getItem('shop2')||'{}');
+var shopSel     = JSON.parse(localStorage.getItem('shopSel')||'{"e":true,"k":true}');
+var yPerson     = 'e';
+var weekMode    = 'normal';
+var yDay        = new Date().getDay(); yDay = yDay===0?6:yDay-1;
+
+// ─────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+
+// ─────────────────────────────────────────
+// SPOR DATA
+// ─────────────────────────────────────────
+var WORKOUTS = [
+  {
+    id:0, day:'Çarşamba', sub:'Üst Vücut · 55 dk', icon:'💪', type:'Güç',
+    wpClass:'wi-guc', pillClass:'wp-guc', btnClass:'cb-guc',
+    phases:[
+      {lbl:'Isınma',time:'7 dk',exs:[
+        {n:'Koşu bandı yürüyüşü (eğim 2°)',tip:'Nabzı kademeli yükselt',s:'5 dk'},
+        {n:'Kol çemberleri + omuz açma',tip:'',s:'1 dk'},
+        {n:'Band pull-apart',tip:'',s:'15 tek'}
+      ]},
+      {lbl:'A Bloku — Süperset · 4 tur · 60 sn dinlenme',time:'',exs:[
+        {n:'A1 · Smith Machine Bench Press',tip:'Kürek kemiklerini sık, sırta yatır',s:'4×10'},
+        {n:'A2 · Lat Pulldown (geniş tutuş)',tip:'Dirsekleri göğse çek, sırtı kullan',s:'4×10'}
+      ]},
+      {lbl:'B Bloku — Süperset · 3 tur · 60 sn dinlenme',time:'',exs:[
+        {n:'B1 · Dumbbell Shoulder Press',tip:'12 kg ile başla',s:'3×12'},
+        {n:'B2 · Cable Row',tip:'Göbek içe, sırt düz',s:'3×12'}
+      ]},
+      {lbl:'C Bloku — Süperset · 3 tur · 45 sn dinlenme',time:'',exs:[
+        {n:'C1 · Bicep Curl',tip:'',s:'3×12'},
+        {n:'C2 · Tricep Pushdown',tip:'',s:'3×12'}
+      ]},
+      {lbl:'Finisher',time:'3 dk',exs:[
+        {n:'Plank',tip:'Kalça ne yukarı ne aşağı',s:'3×40 sn'}
+      ]},
+      {lbl:'Soğuma',time:'5 dk',exs:[
+        {n:'Göğüs + omuz + kedi-deve germe',tip:'',s:'her 30 sn'}
+      ]}
+    ],
+    note:'Form önce, ağırlık sonra. İlk hafta %70 ağırlıkla yap.'
+  },
+  {
+    id:1, day:'Cuma', sub:'HIIT + Core · 50 dk', icon:'🔥', type:'HIIT',
+    wpClass:'wi-hiit', pillClass:'wp-hiit', btnClass:'cb-hiit',
+    phases:[
+      {lbl:'Isınma',time:'5 dk',exs:[
+        {n:'Koşu bandı yürüyüş → hafif koşu',tip:'',s:'5 dk'}
+      ]},
+      {lbl:'HIIT — Koşu Bandı',time:'20 dk',exs:[
+        {n:'1 dk sprint / 1.5 dk yürüyüş',tip:'Sprint: nefes tutamayacağın ama çökmeyeceğin hız',s:'8 tur'}
+      ]},
+      {lbl:'Core Devresi — 3 tur · 45 sn dinlenme',time:'',exs:[
+        {n:'Dead Bug',tip:'Bel yere yapışık kalmalı',s:'12 tek'},
+        {n:'Russian Twist (8-10 kg)',tip:'',s:'20 tek'},
+        {n:'Swiss Ball Crunch',tip:'',s:'15 tek'},
+        {n:'Mountain Climber',tip:'Bel sabit, tempo kontrollü',s:'30 sn'}
+      ]},
+      {lbl:'Soğuma',time:'5 dk',exs:[
+        {n:'Yavaş yürüyüş + kalça + hamstring germe',tip:'',s:'her 30 sn'}
+      ]}
+    ],
+    note:'Haftanın kalori motoru. Yanında su şişeni al.'
+  },
+  {
+    id:2, day:'Cumartesi / Pazar', sub:'Alt Vücut + Kardiyo · 60 dk', icon:'🏋️', type:'Alt + Kardiyo',
+    wpClass:'wi-full', pillClass:'wp-full', btnClass:'cb-full',
+    phases:[
+      {lbl:'Isınma',time:'7 dk',exs:[
+        {n:'Eliptik bisiklet',tip:'Eklemleri ısıt, nabzı yükselt',s:'5 dk'},
+        {n:'Leg swing + derin squat açma',tip:'',s:'10 tek'}
+      ]},
+      {lbl:'A Bloku — Düz Set · 90 sn dinlenme',time:'',exs:[
+        {n:'Smith Machine Squat',tip:'Diz ayak ucunu geçmesin, sırt düz',s:'4×10'}
+      ]},
+      {lbl:'B Bloku — Süperset · 3 tur · 60 sn dinlenme',time:'',exs:[
+        {n:'B1 · Leg Extension',tip:'',s:'3×15'},
+        {n:'B2 · Leg Curl',tip:'',s:'3×15'}
+      ]},
+      {lbl:'C Bloku — Süperset · 3 tur · 60 sn dinlenme',time:'',exs:[
+        {n:'C1 · Romanian Deadlift (DB)',tip:'20 kg ile başla, hamstring hissedilmeli',s:'3×12'},
+        {n:'C2 · Walking Lunge',tip:'Diz yere değmeden dur',s:'3×10/taraf'}
+      ]},
+      {lbl:'Kardiyo Finisher',time:'10 dk',exs:[
+        {n:'Koşu bandı veya eliptik — sabit tempo',tip:'Nabız 135–145 bpm',s:'10 dk'}
+      ]},
+      {lbl:'Soğuma',time:'5 dk',exs:[
+        {n:'Quad + hamstring + piriformis germe',tip:'',s:'her 30 sn'}
+      ]}
+    ],
+    note:'Havuz varsa: kardiyo finisher yerine 15 dk yüzme.'
+  }
+];
+
+function buildWorkouts(){
+  var c = document.getElementById('workoutCards');
+  c.innerHTML='';
+  WORKOUTS.forEach(function(w){
+    var done = sporDone.includes(w.id);
+    var card = document.createElement('div');
+    card.className='workout-card'; card.id='wcard-'+w.id;
+    if(done) card.style.opacity='.6';
+    var head = document.createElement('div');
+    head.className='workout-head';
+    head.innerHTML=
+      '<div class="wday-icon '+(done?'wi-done':w.wpClass)+'" id="wi-'+w.id+'">'+(done?'✓':w.icon)+'</div>'+
+      '<div class="wday-info"><div class="wday-name">'+w.day+'</div><div class="wday-sub">'+w.sub+'</div></div>'+
+      '<span class="wtype-pill '+(done?'wp-done':w.pillClass)+'" id="wpill-'+w.id+'">'+(done?'Tamamlandı':w.type)+'</span>'+
+      '<span class="wchev" id="wchev-'+w.id+'">▾</span>';
+    var body = document.createElement('div');
+    body.className='workout-body'; body.id='wbody-'+w.id;
+    w.phases.forEach(function(ph){
+      var pl=document.createElement('div');
+      pl.className='phase-lbl';
+      pl.innerHTML=ph.lbl+'<span style="color:var(--border);font-size:10px;font-family:\'DM Mono\'">'+ph.time+'</span>';
+      body.appendChild(pl);
+      ph.exs.forEach(function(ex,ei){
+        var key='w'+w.id+'p'+ph.lbl+'e'+ei;
+        var isDone=exDone[key];
+        var row=document.createElement('div');
+        row.className='ex-row'+(isDone?' ex-done':'');
+        row.innerHTML='<div class="fcheck">'+(isDone?'✓':'')+'</div>'+
+          '<div style="flex:1"><div class="ex-name">'+ex.n+'</div>'+(ex.tip?'<div class="ex-tip">'+ex.tip+'</div>':'')+'</div>'+
+          '<div class="ex-sets">'+ex.s+'</div>';
+        row.onclick=function(){
+          var d=row.classList.toggle('ex-done');
+          row.querySelector('.fcheck').textContent=d?'✓':'';
+          exDone[key]=d; localStorage.setItem('ex_done',JSON.stringify(exDone));
+        };
+        body.appendChild(row);
+      });
+    });
+    var note=document.createElement('div');
+    note.className='note-pill'; note.innerHTML=w.note;
+    body.appendChild(note);
+    var btn=document.createElement('button');
+    btn.className='complete-btn '+(done?'cb-done':w.btnClass); btn.id='wbtn-'+w.id;
+    btn.textContent=done?'✓ Tamamlandı':'✓ Antrenmanı Tamamla';
+    if(!done) btn.onclick=function(){completeWorkout(w.id);};
+    body.appendChild(btn);
+    head.onclick=function(){
+      var b=document.getElementById('wbody-'+w.id);
+      var ch=document.getElementById('wchev-'+w.id);
+      var isOpen=b.style.display==='block';
+      b.style.display=isOpen?'none':'block';
+      ch.classList.toggle('open',!isOpen);
+    };
+    card.appendChild(head); card.appendChild(body);
+    c.appendChild(card);
+  });
+  updateSporStats();
+}
+
+function completeWorkout(id){
+  if(sporDone.includes(id)) return;
+  sporDone.push(id);
+  localStorage.setItem('sp_done',JSON.stringify(sporDone));
+  buildWorkouts();
+}
+function updateSporStats(){
+  var n=sporDone.length;
+  document.getElementById('sp-done').textContent=n;
+  document.getElementById('sp-week').textContent='H'+sporWeek;
+  document.getElementById('sp-prog').style.width=Math.round(n/3*100)+'%';
+  document.getElementById('sp-prog-lbl').textContent=n+' / 3';
+}
+function resetSpor(){
+  if(!confirm('Yeni hafta başlatılsın mı?')) return;
+  sporDone=[]; sporWeek++; exDone={};
+  localStorage.setItem('sp_done','[]');
+  localStorage.setItem('sp_week',sporWeek.toString());
+  localStorage.setItem('ex_done','{}');
+  buildWorkouts();
+}
+
+// ─────────────────────────────────────────
+// YEMEK DATA — ERKEK
+// ─────────────────────────────────────────
+var DAYS=['Pzt','Sal','Çar','Per','Cum','Cmt','Paz'];
+var DAYS_FULL=['Pazartesi','Salı','Çarşamba','Perşembe','Cuma','Cumartesi','Pazar'];
+var TRAIN_DAYS=[2,4,5]; // Çar, Cum, Cmt
+
+var MEALS_E = {
+  0:{
+    meals:[
+      {title:'Kahvaltı',time:'08:00',kcal:480,dot:'var(--yellow)',
+       items:[{n:'Haşlanmış yumurta',d:'3 adet',m:'P:18g'},{n:'Tam buğday ekmek',d:'2 dilim',m:'K:30g'},{n:'Beyaz peynir',d:'50g',m:'P:9g'},{n:'Domates + salatalık',d:'Dilimlenmiş',m:'~30kcal'},{n:'Çay / Sade kahve',d:'Şekersiz',m:'0kcal'}],
+       note:null},
+      {title:'Ara Öğün',time:'11:30',kcal:220,dot:'var(--green)',
+       items:[{n:'Yoğurt',d:'200g, sade',m:'P:12g'},{n:'Muz',d:'1 orta boy',m:'K:22g'}],
+       note:null},
+      {title:'Akşam Yemeği',time:'19:00',kcal:580,dot:'var(--pink)',
+       items:[{n:'Tavuk göğsü (ızgara)',d:'200g',m:'P:42g'},{n:'Esmer pirinç pilavı',d:'6 yemek kaşığı',m:'K:45g'},{n:'Zeytinyağlı sebze',d:'Brokoli veya kabak',m:'K:10g'},{n:'Cacık veya ayran',d:'1 bardak',m:'P:5g'}],
+       note:null}
+    ]
+  },
+  1:{
+    meals:[
+      {title:'Kahvaltı',time:'08:00',kcal:460,dot:'var(--yellow)',
+       items:[{n:'Yulaf ezmesi',d:'70g, sütle pişir',m:'K:48g'},{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Fıstık ezmesi',d:'1 tatlı kaşığı',m:'Y:8g'},{n:'Muz',d:'1 orta boy',m:'K:22g'}],
+       note:null},
+      {title:'Ara Öğün',time:'12:00',kcal:200,dot:'var(--green)',
+       items:[{n:'Lor peyniri',d:'150g',m:'P:18g'},{n:'Ceviz',d:'4-5 yarım',m:'Y:9g'}],
+       note:null},
+      {title:'Akşam Yemeği',time:'19:00',kcal:560,dot:'var(--pink)',
+       items:[{n:'Köfte (az yağlı kıyma)',d:'200g',m:'P:36g'},{n:'Bulgur pilavı',d:'5 kaşık',m:'K:38g'},{n:'Mevsim salatası',d:'Zeytinyağı + limon',m:'K:8g'}],
+       note:null}
+    ]
+  },
+  2:{
+    meals:[
+      {title:'Kahvaltı 🏋️',time:'08:00',kcal:500,dot:'var(--yellow)',
+       items:[{n:'Omlet',d:'3 yumurta + 50g peynir',m:'P:28g'},{n:'Tam buğday ekmek',d:'2 dilim',m:'K:30g'},{n:'Domates + biber',d:'Yanında',m:'~20kcal'},{n:'Çay / Kahve',d:'Şekersiz',m:'0kcal'}],
+       note:'⚡ Antrenman günü. Kahvaltıdan 1-1.5 saat sonra spora git.'},
+      {title:'Ara Öğün (Antrenman Öncesi)',time:'10:30',kcal:230,dot:'var(--green)',
+       items:[{n:'Muz',d:'1 orta boy',m:'K:22g'},{n:'Yoğurt',d:'150g sade',m:'P:9g'}],
+       note:'Spordan 30-45 dk önce ye. Hafif tut.'},
+      {title:'Akşam (Antrenman Sonrası)',time:'14:00',kcal:600,dot:'var(--pink)',
+       items:[{n:'Tavuk göğsü (ızgara)',d:'220g',m:'P:46g'},{n:'Esmer pirinç pilavı',d:'7 kaşık',m:'K:50g'},{n:'Brokoli + havuç',d:'Zeytinyağlı',m:'K:12g'},{n:'Ayran',d:'1 bardak',m:'P:4g'}],
+       note:'Antrenman bitince 1 saat içinde ye. Bu öğünü atlama.'}
+    ]
+  },
+  3:{
+    meals:[
+      {title:'Kahvaltı',time:'08:00',kcal:450,dot:'var(--yellow)',
+       items:[{n:'Yulaf ezmesi',d:'70g',m:'K:48g'},{n:'Süt ile pişir',d:'200ml',m:'P:12g'},{n:'Badem',d:'15 adet',m:'Y:9g'},{n:'Elma',d:'1 orta boy',m:'K:15g'}],
+       note:null},
+      {title:'Ara Öğün',time:'12:00',kcal:190,dot:'var(--green)',
+       items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Ayran',d:'1 bardak',m:'P:4g'}],
+       note:null},
+      {title:'Akşam Yemeği',time:'19:00',kcal:550,dot:'var(--pink)',
+       items:[{n:'Fırında somon',d:'180g',m:'P:36g'},{n:'Haşlanmış patates',d:'200g',m:'K:38g'},{n:'Mevsim salatası',d:'Zeytinyağlı',m:'K:8g'}],
+       note:'Somon yerine levrek veya çipura da olur.'}
+    ]
+  },
+  4:{
+    meals:[
+      {title:'Kahvaltı 🔥',time:'08:00',kcal:490,dot:'var(--yellow)',
+       items:[{n:'Haşlanmış yumurta',d:'3 adet',m:'P:18g'},{n:'Tam buğday ekmek',d:'2 dilim',m:'K:30g'},{n:'Beyaz peynir',d:'50g',m:'P:9g'},{n:'Domates + salatalık',d:'Dilimlenmiş',m:'~30kcal'}],
+       note:'🔥 HIIT günü. Spor başlamadan en az 1 saat önce ye.'},
+      {title:'Ara Öğün (Antrenman Öncesi)',time:'10:30',kcal:200,dot:'var(--green)',
+       items:[{n:'Muz',d:'1 adet',m:'K:22g'},{n:'Yoğurt',d:'100g',m:'P:6g'}],
+       note:'HIIT öncesi çok dolma, hafif tut.'},
+      {title:'Akşam (Antrenman Sonrası)',time:'14:00',kcal:580,dot:'var(--pink)',
+       items:[{n:'Izgara tavuk veya köfte',d:'200-220g',m:'P:42g'},{n:'Tam buğday makarna',d:'80g kuru',m:'K:56g'},{n:'Zeytinyağlı sebze sosu',d:'Domates + biber',m:'K:15g'}],
+       note:'HIIT sonrası karbonhidrat kritik. Enerji depolarını doldur.'}
+    ]
+  },
+  5:{
+    meals:[
+      {title:'Kahvaltı 🏋️',time:'08:00',kcal:520,dot:'var(--yellow)',
+       items:[{n:'Omlet',d:'3 yumurta',m:'P:18g'},{n:'Kaşar / peynir',d:'50g iç',m:'P:12g'},{n:'Tam buğday ekmek',d:'2 dilim',m:'K:30g'},{n:'Domates + biber + salatalık',d:'Tabak dolusu',m:'K:12g'}],
+       note:'🏋️ Alt vücut günü. En dolu kahvaltıyı bu gün yap.'},
+      {title:'Ara Öğün (Antrenman Öncesi)',time:'10:30',kcal:240,dot:'var(--green)',
+       items:[{n:'Yoğurt',d:'200g, sade',m:'P:12g'},{n:'Muz',d:'1 orta boy',m:'K:22g'},{n:'Bal',d:'1 tatlı kaşığı',m:'K:8g'}],
+       note:'30-45 dk önce ye.'},
+      {title:'Akşam Yemeği',time:'14:30',kcal:600,dot:'var(--pink)',
+       items:[{n:'Tavuk göğsü (ızgara)',d:'220g',m:'P:46g'},{n:'Tatlı patates veya esmer pirinç',d:'200g / 7 kaşık',m:'K:48g'},{n:'Zeytinyağlı yeşil salata',d:'Bol yaprak',m:'K:8g'},{n:'Ayran',d:'1 bardak',m:'P:4g'}],
+       note:'Ağır bacak sonrası protein + karbonhidrat ikili şart.'}
+    ]
+  },
+  6:{
+    meals:[
+      {title:'Kahvaltı',time:'09:00',kcal:480,dot:'var(--yellow)',
+       items:[{n:'Serpme kahvaltı',d:'Yumurta, peynir, zeytin, domates',m:'P:28g'},{n:'Tam buğday ekmek',d:'2-3 dilim',m:'K:40g'},{n:'Çay',d:'Şekersiz, istediğin kadar',m:'0kcal'}],
+       note:'Pazar dinlenme günü. Rahat bir kahvaltı.'},
+      {title:'Ara Öğün',time:'13:00',kcal:200,dot:'var(--green)',
+       items:[{n:'Meyve (elma veya armut)',d:'1-2 adet',m:'K:20g'},{n:'Yoğurt',d:'150g',m:'P:9g'}],
+       note:null},
+      {title:'Akşam Yemeği',time:'18:30',kcal:540,dot:'var(--pink)',
+       items:[{n:'Mercimek çorbası',d:'1 kase',m:'P:12g K:30g'},{n:'Izgara balık veya tavuk',d:'180g',m:'P:36g'},{n:'Bulgur pilavı',d:'5 kaşık',m:'K:30g'},{n:'Cacık',d:'1 kase',m:'P:5g'}],
+       note:'Haftanın son öğünü. Hafif ama doyurucu.'}
+    ]
+  }
+};
+
+// ─────────────────────────────────────────
+// YEMEK DATA — KADIN (Normal Hafta)
+// ─────────────────────────────────────────
+var KUR_SABAH = {
+  title:'Sabah Kürü (Uyanınca, Aç Karnına)',
+  items:['1 sb ılık su','1 yk limon suyu','1 yk elma sirkesi','1-2 rendelenmiş zencefil'],
+  note:'Hepsini karıştır. Kahvaltıdan 15-20 dk önce için.'
+};
+
+var META_CAYI = {
+  title:'Metabolizma Çayı (Tartıdan 2 Gün Önce)',
+  items:['1 çubuk tarçın','5 çekirdek kakule (veya 1 tk yeşil çay)','2 adet karanfil','1 çay kaşığı bal (soğuyunca)','½ limon suyu','1 çay kaşığı karabiber','1.5 litre su'],
+  note:'Kaynayan suya bal hariç diğerlerini at. 10 dk kısık ateşte kaynat. Ilıyınca balı ekle. Gün içinde su gibi iç.'
+};
+
+var MEALS_K_NORMAL = {
+  0:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:30',kcal:380,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim (40g)',m:'P:8g'},{n:'Zeytin',d:'5 adet',m:'Y:5g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'},{n:'Tam buğday ekmek',d:'2 kare dilim',m:'K:26g'},{n:'Ayran',d:'1 sb',m:'P:4g'}],
+     note:'1. seçenek. İstersen sebzeli ekmek tarifiyle de yapabilirsin.'},
+    {title:'Ara Öğün 1',time:'11:00',kcal:180,dot:'var(--green)',
+     items:[{n:'Zencefil çayı veya yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Badem',d:'10 adet',m:'Y:7g P:3g'}],
+     note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:480,dot:'var(--pink)',
+     items:[{n:'Tavuk veya köfte veya balık',d:'3 avuç içi (~150g)',m:'P:36g'},{n:'Bol salata',d:'Yağsız, limon + sirke',m:'~30kcal'},{n:'Tam buğday ekmek',d:'1 dilim',m:'K:13g'},{n:'Ayran',d:'1 sb',m:'P:4g'}],
+     note:'Et yerine 8 yk etli sebze yemeği de olur.'},
+    {title:'Ara Öğün 2',time:'20:30',kcal:120,dot:'var(--purple)',
+     items:[{n:'Sütlü kahve veya 1 sb süt',d:'Sade',m:'P:6g'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]},
+  1:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:30',kcal:360,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim',m:'P:8g'},{n:'Zeytin',d:'5 adet',m:'Y:5g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'},{n:'Tam buğday ekmek',d:'1 kare dilim',m:'K:13g'}],
+     note:null},
+    {title:'Ara Öğün 1',time:'11:00',kcal:200,dot:'var(--green)',
+     items:[{n:'Hurmali kahve',d:'Tarife göre',m:'P:5g K:15g'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'},{n:'Badem',d:'5 adet',m:'Y:4g'}],
+     note:'Hurmali kahve: 2 tk granül kahve + 1 sb süt + 1 tk tarçın + 1 hurma. Blenderdan geçir.'},
+    {title:'Akşam Yemeği',time:'18:30',kcal:460,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:38g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'},{n:'Tam buğday ekmek',d:'1 kare dilim',m:'K:13g'},{n:'Bol salata',d:'Yağsız',m:'~20kcal'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'20:30',kcal:100,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]},
+  2:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:30',kcal:400,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta veya omlet',d:'1 yumurta (1 tk yağ)',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim',m:'P:8g'},{n:'Zeytin',d:'5 adet',m:'Y:5g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'},{n:'Tam buğday ekmek',d:'1 kare dilim',m:'K:13g'}],
+     note:null},
+    {title:'Ara Öğün 1',time:'11:00',kcal:180,dot:'var(--green)',
+     items:[{n:'Sütlü kahve',d:'1 fincan',m:'P:5g'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'},{n:'Badem',d:'5 adet',m:'Y:4g'}],
+     note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:450,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:36g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'},{n:'Tam buğday ekmek',d:'1 dilim',m:'K:13g'},{n:'Bol salata',d:'Yağsız',m:'~20kcal'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'20:30',kcal:110,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Badem',d:'5 adet',m:'Y:4g'}],
+     note:null}
+  ]},
+  3:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:30',kcal:380,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim',m:'P:8g'},{n:'Avokado',d:'¼ veya 2 ceviz içi',m:'Y:8g'},{n:'1 meyve',d:'Porsiyon',m:'K:15g'},{n:'Tam buğday ekmek',d:'2 kare dilim',m:'K:26g'}],
+     note:null},
+    {title:'Ara Öğün 1',time:'11:00',kcal:180,dot:'var(--green)',
+     items:[{n:'Hurmali kahve veya 1 sb süt',d:'Seçime göre',m:'P:5g'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'},{n:'Badem',d:'5 adet',m:'Y:4g'}],
+     note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:460,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:36g'},{n:'8 yk etli sebze yemeği',d:'veya kurubakliyat',m:'P:12g K:30g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'},{n:'Tam buğday ekmek',d:'1 dilim',m:'K:13g'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'20:30',kcal:100,dot:'var(--purple)',
+     items:[{n:'Yeşil çay veya papatya çayı',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]},
+  4:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:30',kcal:380,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim',m:'P:8g'},{n:'Zeytin',d:'5 adet',m:'Y:5g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'},{n:'Tam buğday ekmek',d:'1 kare dilim',m:'K:13g'}],
+     note:null},
+    {title:'Ara Öğün 1',time:'11:00',kcal:200,dot:'var(--green)',
+     items:[{n:'Sütlü kahve',d:'1 fincan',m:'P:5g'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'},{n:'Badem',d:'5 adet',m:'Y:4g'}],
+     note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:450,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:36g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'},{n:'Tam buğday ekmek',d:'1 dilim',m:'K:13g'},{n:'Bol salata',d:'Yağsız',m:'~20kcal'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'20:30',kcal:100,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Atom yoğurt (tartıya 3 gün kala)',d:'3 yk yoğurt + salatalık + sumak + pul biber + limon + keten tohumu',m:'P:6g'}],
+     note:'Tartıya yakın günlerde atom yoğurt ara öğün yerine geçer.'}
+  ]},
+  5:{kur:true,meals:[
+    {title:'Kahvaltı',time:'09:00',kcal:360,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Peynir tost (yağsız)',d:'2 dilim peynir + 2 dilim ekmek',m:'P:10g K:26g'},{n:'Ceviz',d:'2 yarım',m:'Y:9g'}],
+     note:'2. seçenek — haftada 1 kez.'},
+    {title:'Ara Öğün 1',time:'11:00',kcal:180,dot:'var(--green)',
+     items:[{n:'Yeşil detoks smoothie',d:'Maydanoz + ıspanak + zencefil + ¼ limon + ½ elma + nane + 1 sb su',m:'K:12g P:3g'},{n:'Blenderdan geçir',d:'Pazar-Pazartesi özel',m:''}],
+     note:'Pazar-Pazartesi yeşil detoks günleri.'},
+    {title:'Akşam Yemeği',time:'18:30',kcal:460,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:36g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'},{n:'Tam buğday ekmek',d:'1 dilim',m:'K:13g'},{n:'Bol salata',d:'Yağsız',m:'~20kcal'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'20:30',kcal:100,dot:'var(--purple)',
+     items:[{n:'Hibüsküs çayı veya ıhlamur',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]},
+  6:{kur:true,meals:[
+    {title:'Kahvaltı',time:'09:00',kcal:360,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'1 adet',m:'P:6g'},{n:'Beyaz peynir',d:'2 dilim',m:'P:8g'},{n:'Zeytin',d:'5 adet',m:'Y:5g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'},{n:'Tam buğday ekmek',d:'1 kare dilim',m:'K:13g'}],
+     note:'Pazar dinlenme günü.'},
+    {title:'Ara Öğün 1 — Yeşil Detoks',time:'11:30',kcal:120,dot:'var(--green)',
+     items:[{n:'Yeşil detoks smoothie',d:'1 avuç maydanoz + 1 avuç ıspanak + zencefil + ¼ limon + ½ yeşil elma + nane + 1 sb su',m:'K:12g P:3g'}],
+     note:'Pazar yeşil detoks günü. Blenderdan geçir.'},
+    {title:'Akşam Yemeği',time:'18:30',kcal:450,dot:'var(--pink)',
+     items:[{n:'Et / Tavuk / Balık',d:'3-4 avuç içi',m:'P:36g'},{n:'8 yk etli sebze yemeği',d:'veya kurubakliyat',m:'P:12g K:30g'},{n:'Yoğurt',d:'4 yk + 1 tk keten tohumu',m:'P:6g'}],
+     note:null},
+    {title:'Ara Öğün 2',time:'21:00',kcal:100,dot:'var(--purple)',
+     items:[{n:'Papatya veya ıhlamur çayı',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]}
+};
+
+// KADIN DETOKS HAFTASI
+var MEALS_K_DETOKS = {
+  0:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],
+     note:'Detoks haftası. Sade ve hafif tut.'},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal',d:'1 çk',m:''},{n:'Zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],
+     note:''},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zencefil + zerdeçal',m:'P:6g'}],
+     note:null},
+    {title:'Gece Ara',time:'20:30',kcal:60,dot:'var(--blue)',
+     items:[{n:'Hibüsküs çayı',d:'1 kupa',m:'0kcal'},{n:'Maden suyu',d:'1 şişe',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],
+     note:null}
+  ]},
+  1:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara',time:'20:30',kcal:60,dot:'var(--blue)',
+     items:[{n:'Hibüsküs çayı',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null}
+  ]},
+  2:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara',time:'20:30',kcal:60,dot:'var(--blue)',
+     items:[{n:'Hibüsküs çayı',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null}
+  ]},
+  3:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara',time:'20:30',kcal:60,dot:'var(--blue)',
+     items:[{n:'Hibüsküs çayı',d:'1 kupa',m:'0kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null}
+  ]},
+  4:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara — Atom Yoğurt',time:'20:30',kcal:80,dot:'var(--blue)',
+     items:[{n:'Atom yoğurt',d:'3 yk yoğurt + salatalık + sumak + pul biber + limon + keten tohumu',m:'P:5g'}],
+     note:'Tartıya son 3 gün kala son ara öğün yerine atom yoğurt yap.'}
+  ]},
+  5:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara — Atom Yoğurt',time:'20:30',kcal:80,dot:'var(--blue)',
+     items:[{n:'Atom yoğurt',d:'3 yk yoğurt + salatalık + sumak + pul biber + limon + keten tohumu',m:'P:5g'}],note:null}
+  ]},
+  6:{kur:true,meals:[
+    {title:'Kahvaltı',time:'08:00',kcal:260,dot:'var(--yellow)',
+     items:[{n:'Haşlanmış yumurta',d:'2 adet',m:'P:12g'},{n:'Kuru kayısı',d:'2 adet',m:'K:10g'},{n:'Bol yeşillik',d:'Serbest',m:'~10kcal'}],note:null},
+    {title:'Öğle — Yağ Yakan Yoğurt',time:'12:00',kcal:220,dot:'var(--green)',
+     items:[{n:'Yoğurt',d:'4 yk',m:'P:6g'},{n:'Keten tohumu',d:'1 tk',m:'Y:2g'},{n:'Zerdeçal + zencefil',d:'1 çk',m:''},{n:'Ceviz',d:'2 yarım',m:'Y:9g'},{n:'Kuru kayısı',d:'3 adet',m:'K:15g'}],note:null},
+    {title:'Ara Öğün',time:'15:30',kcal:80,dot:'var(--purple)',
+     items:[{n:'Yeşil çay',d:'1 kupa',m:'0kcal'},{n:'Salatalık',d:'2 adet',m:'~30kcal'},{n:'Meyve',d:'1 porsiyon',m:'K:15g'}],note:null},
+    {title:'Akşam Yemeği',time:'18:30',kcal:300,dot:'var(--pink)',
+     items:[{n:'Sebze yemeği',d:'8 yk',m:'K:25g P:5g'},{n:'Yoğurt',d:'4 yk + zerdeçal + zencefil',m:'P:6g'}],note:null},
+    {title:'Gece Ara — Atom Yoğurt',time:'20:30',kcal:80,dot:'var(--blue)',
+     items:[{n:'Atom yoğurt',d:'3 yk yoğurt + salatalık + sumak + pul biber + limon + keten tohumu',m:'P:5g'}],
+     note:'Tartıya son 3 gün kala yapılır. Diyetisyenin tavsiyesi.'}
+  ]}
+};
+
+// ─────────────────────────────────────────
+// YEMEK BUILD
+// ─────────────────────────────────────────
+function setYPerson(p){
+  yPerson=p;
+  document.getElementById('ybtn-e').className='person-btn'+(p==='e'?' active-m':'');
+  document.getElementById('ybtn-k').className='person-btn'+(p==='k'?' active-f':'');
+  document.getElementById('week-mode-row').style.display=p==='k'?'block':'none';
+  buildYDayTabs(); buildYMeals();
+}
+function setWeekMode(m){
+  weekMode=m;
+  var nBtn=document.getElementById('wm-normal');
+  var dBtn=document.getElementById('wm-detoks');
+  nBtn.className='week-btn'+(m==='normal'?' active':'');
+  dBtn.className='week-btn'+(m==='detoks'?' active':'');
+  if(m!=='detoks'){dBtn.style.color='#9ecfdb';dBtn.style.borderColor='rgba(96,212,240,.35)';}
+  else{dBtn.style.color='';dBtn.style.borderColor='';}
+  buildYMeals();
+}
+function buildYDayTabs(){
+  var tabs=document.getElementById('yDayTabs');
+  tabs.innerHTML='';
+  DAYS.forEach(function(d,i){
+    var btn=document.createElement('button');
+    var ac=yPerson==='e'?'active-m':'active-f';
+    btn.className='day-tab'+(i===yDay?' '+ac:'');
+    btn.textContent=d; btn.onclick=function(){yDay=i;buildYDayTabs();buildYMeals();};
+    tabs.appendChild(btn);
+  });
+}
+function buildYMeals(){
+  var c=document.getElementById('yMealsContainer'); c.innerHTML='';
+  var data = yPerson==='e' ? MEALS_E[yDay] : (weekMode==='detoks'?MEALS_K_DETOKS[yDay]:MEALS_K_NORMAL[yDay]);
+
+  // kür kartı (kadın)
+  if(yPerson==='k' && data.kur){
+    var kc=document.createElement('div'); kc.className='kur-card';
+    kc.innerHTML='<div class="kur-title">🌿 '+KUR_SABAH.title+'</div>'+
+      KUR_SABAH.items.map(i=>'<div class="kur-item">· '+i+'</div>').join('')+
+      '<div class="kur-sub">'+KUR_SABAH.note+'</div>';
+    c.appendChild(kc);
+    // Meta çayı
+    var mc=document.createElement('div'); mc.className='kur-card'; mc.style.background='rgba(240,192,96,.06)'; mc.style.borderColor='rgba(240,192,96,.2)';
+    mc.innerHTML='<div class="kur-title" style="color:var(--yellow)">☕ '+META_CAYI.title+'</div>'+
+      META_CAYI.items.map(i=>'<div class="kur-item">· '+i+'</div>').join('')+
+      '<div class="kur-sub">'+META_CAYI.note+'</div>';
+    c.appendChild(mc);
+  }
+
+  data.meals.forEach(function(meal,mi){
+    var card=document.createElement('div'); card.className='meal-card';
+    var head=document.createElement('div'); head.className='meal-head';
+    var dotColor=meal.dot||'var(--green)';
+    head.innerHTML=
+      '<div class="meal-dot" style="background:'+dotColor+'"></div>'+
+      '<div class="meal-title-text">'+meal.title+' <span style="font-weight:400;font-size:11px;color:var(--muted)">'+meal.time+'</span></div>'+
+      '<span class="meal-kcal">'+meal.kcal+' kcal</span>'+
+      '<span class="meal-chev" id="ychev-'+mi+'">▾</span>';
+    var body=document.createElement('div'); body.className='meal-body'; body.id='ymeal-'+mi;
+    meal.items.forEach(function(item,ii){
+      var key='y'+yPerson+weekMode+yDay+'m'+mi+'i'+ii;
+      var eaten=eatenState[key];
+      var row=document.createElement('div');
+      row.className='food-row'+(eaten?' eaten':'');
+      row.innerHTML='<div class="fcheck">'+(eaten?'✓':'')+'</div>'+
+        '<div style="flex:1"><div class="food-name">'+item.n+'</div><div class="food-detail">'+item.d+'</div></div>'+
+        '<div class="food-macro">'+item.m+'</div>';
+      row.onclick=function(){
+        var e=row.classList.toggle('eaten');
+        row.querySelector('.fcheck').textContent=e?'✓':'';
+        eatenState[key]=e; localStorage.setItem('eaten2',JSON.stringify(eatenState));
+      };
+      body.appendChild(row);
+    });
+    if(meal.note){var np=document.createElement('div');np.className='note-pill';np.innerHTML=meal.note;body.appendChild(np);}
+    head.onclick=function(){
+      var b=document.getElementById('ymeal-'+mi);
+      var ch=document.getElementById('ychev-'+mi);
+      var isOpen=b.style.display==='block';
+      b.style.display=isOpen?'none':'block';
+      ch.classList.toggle('open',!isOpen);
+    };
+    body.style.display='none';
+    card.appendChild(head); card.appendChild(body); c.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────
+// ALIŞVERİŞ DATA
+// ─────────────────────────────────────────
+// format: {name, qty_e, qty_k, unit}
+// qty_e / qty_k = 0 means not needed for that person
+var SHOP_DATA = [
+  {cat:'🥩 Protein',items:[
+    {n:'Tavuk göğsü',e:'1 kg',k:'600g',u:''},
+    {n:'Az yağlı kıyma',e:'500g',k:'400g',u:''},
+    {n:'Somon fileto',e:'400g',k:'0',u:''},
+    {n:'Yumurta',e:'20 adet',k:'14 adet',u:''},
+    {n:'Beyaz peynir',e:'250g',k:'200g',u:''},
+    {n:'Lor peyniri',e:'150g',k:'0',u:''},
+    {n:'Yoğurt (sade)',e:'1 kg',k:'1 kg',u:''},
+    {n:'Kaşar peyniri',e:'100g',k:'0',u:''},
+  ]},
+  {cat:'🌾 Tahıl & Ekmek',items:[
+    {n:'Tam buğday ekmek',e:'2 paket',k:'2 paket',u:''},
+    {n:'Esmer pirinç',e:'1 kg',k:'0',u:''},
+    {n:'Bulgur',e:'500g',k:'0',u:''},
+    {n:'Yulaf ezmesi',e:'500g',k:'0',u:''},
+    {n:'Tam buğday makarna',e:'500g',k:'0',u:''},
+  ]},
+  {cat:'🥦 Sebze',items:[
+    {n:'Brokoli',e:'500g',k:'500g',u:''},
+    {n:'Kabak',e:'3 adet',k:'3 adet',u:''},
+    {n:'Domates',e:'1 kg',k:'500g',u:''},
+    {n:'Salatalık',e:'1 kg',k:'1 kg',u:''},
+    {n:'Biber',e:'500g',k:'300g',u:''},
+    {n:'Ispanak',e:'0',k:'200g',u:''},
+    {n:'Maydanoz',e:'0',k:'1 demet',u:''},
+    {n:'Yeşillik (roka, marul vb.)',e:'2 paket',k:'2 paket',u:''},
+  ]},
+  {cat:'🍌 Meyve',items:[
+    {n:'Muz',e:'7 adet',k:'4 adet',u:''},
+    {n:'Elma',e:'5 adet',k:'5 adet',u:''},
+    {n:'Avokado',e:'0',k:'2 adet',u:''},
+    {n:'Kuru kayısı',e:'100g',k:'200g',u:''},
+    {n:'Hurma (kuru)',e:'0',k:'1 paket',u:''},
+  ]},
+  {cat:'🧴 Diğer',items:[
+    {n:'Zeytinyağı',e:'1 şişe',k:'1 şişe',u:''},
+    {n:'Elma sirkesi',e:'1 şişe',k:'1 şişe',u:''},
+    {n:'Badem (çiğ)',e:'100g',k:'100g',u:''},
+    {n:'Ceviz',e:'100g',k:'150g',u:''},
+    {n:'Keten tohumu',e:'0',k:'1 paket',u:''},
+    {n:'Zerdeçal',e:'0',k:'1 paket',u:''},
+    {n:'Zencefil (taze veya toz)',e:'50g',k:'100g',u:''},
+    {n:'Tarçın',e:'0',k:'1 paket',u:''},
+    {n:'Limon',e:'4 adet',k:'6 adet',u:''},
+    {n:'Bal',e:'0',k:'1 kavanoz',u:''},
+    {n:'Ayran (paket)',e:'6 adet',k:'0',u:''},
+    {n:'Yeşil çay',e:'0',k:'1 paket',u:''},
+    {n:'Sumak',e:'0',k:'1 paket',u:''},
+    {n:'Pekmez',e:'0',k:'1 kavanoz',u:''},
+  ]}
+];
+
+function toggleShopPerson(p){
+  shopSel[p]=!shopSel[p];
+  localStorage.setItem('shopSel',JSON.stringify(shopSel));
+  var btn=document.getElementById('scb-'+p);
+  var box=document.getElementById('scb-'+p+'-box');
+  var cls=p==='e'?'sel-m':'sel-f';
+  btn.classList.toggle(cls,shopSel[p]);
+  box.textContent=shopSel[p]?'✓':'';
+  buildShop();
+}
+
+function mergeQty(a,b){
+  if(a==='0'&&b==='0') return null;
+  if(a==='0') return b;
+  if(b==='0') return a;
+  // try to merge numbers
+  var na=parseFloat(a), nb=parseFloat(b);
+  if(!isNaN(na)&&!isNaN(nb)){
+    var unit=a.replace(/[\d.]/g,'').trim();
+    return (na+nb)+unit;
+  }
+  return a+' + '+b;
+}
+
+function buildShop(){
+  var c=document.getElementById('shopContainer'); c.innerHTML='';
+  var selE=shopSel.e, selK=shopSel.k;
+  if(!selE&&!selK){
+    c.innerHTML='<div class="empty-shop">Kişi seçin</div>'; return;
+  }
+  SHOP_DATA.forEach(function(cat){
+    var visItems=[];
+    cat.items.forEach(function(item){
+      var show=false, qty='', who='';
+      if(selE&&selK){
+        var merged=mergeQty(item.e,item.k);
+        if(merged){show=true;qty=merged;who='b';}
+      } else if(selE&&item.e!=='0'){
+        show=true;qty=item.e;who='e';
+      } else if(selK&&item.k!=='0'){
+        show=true;qty=item.k;who='k';
+      }
+      if(show) visItems.push({n:item.n,qty:qty,who:who});
+    });
+    if(!visItems.length) return;
+    var card=document.createElement('div'); card.className='shop-cat-card';
+    var head=document.createElement('div'); head.className='shop-cat-head';
+    head.textContent=cat.cat; card.appendChild(head);
+    visItems.forEach(function(item){
+      var key='shop-'+item.n;
+      var got=shopGot[key];
+      var row=document.createElement('div');
+      row.className='shop-item'+(got?' got':'');
+      var whoLabel=item.who==='b'?'İkisi':item.who==='e'?'Erkek':'Kadın';
+      var whoClass=item.who==='b'?'who-b':item.who==='e'?'who-m':'who-f';
+      row.innerHTML='<div class="fcheck">'+(got?'✓':'')+'</div>'+
+        '<span class="shop-item-name">'+item.n+'</span>'+
+        '<span class="shop-who '+whoClass+'">'+whoLabel+'</span>'+
+        '<span class="shop-item-qty">'+item.qty+'</span>';
+      row.onclick=function(){
+        var g=row.classList.toggle('got');
+        row.querySelector('.fcheck').textContent=g?'✓':'';
+        shopGot[key]=g; localStorage.setItem('shop2',JSON.stringify(shopGot));
+      };
+      card.appendChild(row);
+    });
+    c.appendChild(card);
+  });
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+buildWorkouts();
+buildYDayTabs();
+buildYMeals();
+buildShop();
+</script>
+</body>
+</html>
